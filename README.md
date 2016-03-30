@@ -16,7 +16,7 @@ class {
 
     exComponentUpdate(nextProps, nextState) {
         return [
-            nextProps.value,
+            nextProps.model.value,
             ...
         ];
     };
