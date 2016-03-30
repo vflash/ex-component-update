@@ -29,7 +29,7 @@ React.createClass({
 
     exComponentUpdate: function(nextProps, nextState) {
         return [
-            nextProps.value,
+            nextProps.model.value,
             ...
         ];
     },
