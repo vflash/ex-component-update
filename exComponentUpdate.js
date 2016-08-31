@@ -37,10 +37,10 @@ module.exports = exComponentUpdate;
 
 var GET_COMPONENT_UPDATE = 'exComponentUpdate';
 var _IS_IGNORE_OBJECT = '__isIgnoreObject';
-var _IS_CHANGE_STATE = '__isChangeState';
+var _IS_IGNORE_STATE = '__isIgnoreState';
 var _EXTERNAL_DATA = '__externalData';
 
-function exComponentUpdate(self, isIgnoreChangeObject) {
+function exComponentUpdate(self, ignoreMode) {
     var isMixin = !self;
     var obj = isMixin ? {} : self;
 
@@ -48,7 +48,8 @@ function exComponentUpdate(self, isIgnoreChangeObject) {
         obj[i] = mixin[i];
     };
 
-    obj[_IS_CHANGE_STATE] = false;
+    obj[_IS_IGNORE_OBJECT] = ignoreMode === true;
+    obj[_IS_IGNORE_STATE] = ignoreMode === true;
 
     if (isMixin) {
         obj.componentDidMount = componentDidMount;
@@ -59,33 +60,20 @@ function exComponentUpdate(self, isIgnoreChangeObject) {
             ? obj[GET_COMPONENT_UPDATE](obj.props, obj.state)
             : []
         );
-
-        replaceSetState(obj);
     };
 
     return obj;
 };
 
 
-function replaceSetState(self) {
-    var setState = self.setState;
-
-    self.setState = function(state, end) {
-        this[_IS_CHANGE_STATE] = true;
-        setState.apply(this, arguments);
-    };
-};
-
 var componentDidMount = function() {
-    replaceSetState(this);
-
     if (this[GET_COMPONENT_UPDATE]) {
         this[_EXTERNAL_DATA] = this[GET_COMPONENT_UPDATE](this.props, this.state);
     };
 };
 
 var mixin = {
-    //getComponentUpdate: null, // function(nextProps, nextState) {return []};
+    //exComponentUpdate: null, // function(nextProps, nextState) {return []};
 
     shouldComponentUpdate: function(nextProps, nextState) {
         var nextData = this[GET_COMPONENT_UPDATE] ? this[GET_COMPONENT_UPDATE](nextProps, nextState) : null;
@@ -93,8 +81,7 @@ var mixin = {
 
         var props = this.props;
 
-        if (this[_IS_CHANGE_STATE]) {
-            this[_IS_CHANGE_STATE] = false;
+        if (!this[_IS_IGNORE_STATE] && nextState !== this.state) {
             if (nextData) {
                 this[_EXTERNAL_DATA] = nextData;
             };
@@ -111,8 +98,14 @@ var mixin = {
                 continue;
             };
 
-            if (isIgnoreChangeObject && (typeof nextProp === typeof prop)) {
-                if (name !== 'children') {
+            if (isIgnoreChangeObject) {
+                var propType = typeof prop;
+
+                if (true
+                    && (propType === 'object' || propType === 'function')
+                    && (propType === typeof nextProp)
+                    && (name !== 'children')
+                ) {
                     continue;
                 };
             };
