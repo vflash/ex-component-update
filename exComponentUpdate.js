@@ -1,3 +1,6 @@
+'use strict';
+// ----------------------------------------------------------
+
 /*
 // exComponentUpdate(selfComponent, isIgnoreChangeObject);
 
@@ -36,9 +39,11 @@ React.createClass({
 module.exports = exComponentUpdate;
 
 var GET_COMPONENT_UPDATE = 'exComponentUpdate';
+var _ON_CHILDS_UPDATE = 'exChildsUpdate'; // событие, есть вероятность что обновились потомки
 var _IS_IGNORE_OBJECT = '__isIgnoreObject';
 var _IS_IGNORE_STATE = '__isIgnoreState';
 var _EXTERNAL_DATA = '__externalData';
+
 
 function exComponentUpdate(self, ignoreMode) {
     var isMixin = !self;
@@ -133,13 +138,13 @@ var mixin = {
             };
         };
 
-        tailExData(this);
+        tailExData(this, null);
         return false;
     },
 
-    _checkExternalData: function() {
+    _checkExternalData: function(end) {
         if (!this[GET_COMPONENT_UPDATE]) {
-            tailExData(this);
+            tailExData(this, end);
             return;
         };
 
@@ -149,19 +154,19 @@ var mixin = {
 
         if (j !== exData.length) {
             this[_EXTERNAL_DATA] = nextData;
-            this.forceUpdate();
+            this.forceUpdate(end);
             return;
         };
 
         while(j--) {
             if (exData[j] !== nextData[j]) {
                 this[_EXTERNAL_DATA] = nextData;
-                this.forceUpdate();
+                this.forceUpdate(end);
                 return;
             };
         };
 
-        tailExData(this);
+        tailExData(this, end);
     },
 };
 
@@ -174,11 +179,73 @@ function tailExData(self) {
 
         if (elem._checkExternalData) {
             elem._checkExternalData();
-
-        } else if (elem.tagName) {
             continue;
-        } else if (elem.setState) {
+
+        };
+
+        if (elem.tagName) {
+            continue;
+        };
+
+        if (elem.setState) {
+            //console.log(elem.constructor);
             elem.setState({});
         };
     };
 };
+
+/*
+function tailExData(self, end) {
+    var refs = self.refs;
+
+    var hasChange = false;
+    var pause = true;
+    var jj = 0
+    var j = 0;
+
+    var fnn = function(x) {
+        if (x) {
+            hasChange = true;
+        };
+
+        fn();
+    };
+
+    var fn = function() {
+        ++jj;
+
+        if (pause || jj !== j) {
+            return;
+        };
+
+        if (hasChange) {
+            var fn = self[_ON_CHILDS_UPDATE];
+            if (fn) {
+                fn();
+            };
+        };
+
+        if (end) {
+            end(hasChange);
+        };
+    };
+
+    for (var i in refs) {
+        var elem = refs[i];
+
+        if (!!elem._checkExternalData) {
+            elem._checkExternalData((++j, fnn));
+
+        } else if (!!elem.tagName) {
+            continue;
+        } else if (!!elem.setState) {
+            hasChange = true;
+            elem.setState({}, (++j, fn));
+        };
+    };
+
+
+    pause = false;
+    fn(++j);
+};
+*/
