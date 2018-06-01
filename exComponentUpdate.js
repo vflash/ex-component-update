@@ -40,6 +40,7 @@ module.exports = exComponentUpdate;
 
 var GET_COMPONENT_UPDATE = 'exComponentUpdate';
 var _ON_CHILDS_UPDATE = 'exChildsUpdate'; // событие, есть вероятность что обновились потомки
+var _IS_IGNORE_CHILDREN = '__isIgnoreChildren'; //
 var _IS_IGNORE_OBJECT = '__isIgnoreObject';
 var _IS_IGNORE_STATE = '__isIgnoreState';
 var _EXTERNAL_DATA = '__externalData';
@@ -53,8 +54,16 @@ function exComponentUpdate(self, ignoreMode) {
         obj[i] = mixin[i];
     };
 
-    obj[_IS_IGNORE_OBJECT] = ignoreMode === true;
-    obj[_IS_IGNORE_STATE] = ignoreMode === true;
+    if (typeof ignoreMode === 'object' && !!ignoreMode) {
+        obj[_IS_IGNORE_CHILDREN] = !!ignoreMode.children;
+        obj[_IS_IGNORE_OBJECT] = !!ignoreMode.object;
+        obj[_IS_IGNORE_STATE] = !!ignoreMode.state;
+
+    } else {
+        obj[_IS_IGNORE_CHILDREN] = false;
+        obj[_IS_IGNORE_OBJECT] = ignoreMode === true;
+        obj[_IS_IGNORE_STATE] = ignoreMode === true;
+    };
 
     if (isMixin) {
         obj.componentDidMount = componentDidMount;
@@ -93,6 +102,7 @@ var mixin = {
             return true;
         };
 
+        var isIgnoreChangeChildren = this[_IS_IGNORE_CHILDREN] ? true : false;
         var isIgnoreChangeObject = this[_IS_IGNORE_OBJECT] ? true : false;
 
         for(var name in nextProps) {
@@ -100,6 +110,10 @@ var mixin = {
             var prop = props[name];
 
             if (nextProp === prop) {
+                continue;
+            };
+
+            if (isIgnoreChangeChildren && (name === 'children')) {
                 continue;
             };
 
