@@ -38,8 +38,9 @@ React.createClass({
 
 module.exports = exComponentUpdate;
 
-var GET_COMPONENT_UPDATE = 'exComponentUpdate';
+var _EX_COMPONENT_UPDATE = 'exComponentUpdate';
 var _ON_CHILDS_UPDATE = 'exChildsUpdate'; // событие, есть вероятность что обновились потомки
+
 var _IS_IGNORE_CHILDREN = '__isIgnoreChildren'; //
 var _IS_IGNORE_OBJECT = '__isIgnoreObject';
 var _IS_IGNORE_STATE = '__isIgnoreState';
@@ -70,8 +71,8 @@ function exComponentUpdate(self, ignoreMode) {
         obj[_EXTERNAL_DATA] = [];
 
     } else {
-        obj[_EXTERNAL_DATA] = (obj[GET_COMPONENT_UPDATE]
-            ? obj[GET_COMPONENT_UPDATE](obj.props, obj.state)
+        obj[_EXTERNAL_DATA] = (obj[_EX_COMPONENT_UPDATE]
+            ? obj[_EX_COMPONENT_UPDATE](obj.props, obj.state)
             : []
         );
     };
@@ -81,8 +82,8 @@ function exComponentUpdate(self, ignoreMode) {
 
 
 var componentDidMount = function() {
-    if (this[GET_COMPONENT_UPDATE]) {
-        this[_EXTERNAL_DATA] = this[GET_COMPONENT_UPDATE](this.props, this.state);
+    if (this[_EX_COMPONENT_UPDATE]) {
+        this[_EXTERNAL_DATA] = this[_EX_COMPONENT_UPDATE](this.props, this.state);
     };
 };
 
@@ -90,10 +91,15 @@ var mixin = {
     //exComponentUpdate: null, // function(nextProps, nextState) {return []};
 
     shouldComponentUpdate: function(nextProps, nextState) {
-        var nextData = this[GET_COMPONENT_UPDATE] ? this[GET_COMPONENT_UPDATE](nextProps, nextState) : null;
+        var nextData = null;
         var exData = this[_EXTERNAL_DATA];
 
-        var props = this.props;
+        if (this[_EX_COMPONENT_UPDATE]) {
+            nextData = this[_EX_COMPONENT_UPDATE](nextProps, nextState);
+            if (!nextData) {
+                return false;
+            };
+        };
 
         if (!this[_IS_IGNORE_STATE] && nextState !== this.state) {
             if (nextData) {
@@ -104,6 +110,7 @@ var mixin = {
 
         var isIgnoreChangeChildren = this[_IS_IGNORE_CHILDREN] ? true : false;
         var isIgnoreChangeObject = this[_IS_IGNORE_OBJECT] ? true : false;
+        var props = this.props;
 
         for(var name in nextProps) {
             var nextProp = nextProps[name];
@@ -157,12 +164,12 @@ var mixin = {
     },
 
     _checkExternalData: function(end) {
-        if (!this[GET_COMPONENT_UPDATE]) {
+        if (!this[_EX_COMPONENT_UPDATE]) {
             tailExData(this, end);
             return;
         };
 
-        var nextData = this[GET_COMPONENT_UPDATE](this.props, this.state);
+        var nextData = this[_EX_COMPONENT_UPDATE](this.props, this.state);
         var exData = this[_EXTERNAL_DATA];
         var j = nextData.length;
 
