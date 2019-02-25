@@ -3,9 +3,7 @@
 ```
 sh: npm install ex-component-update
 ```
-миксин для оптимизации обновления компонента. Идея в подходе что принимать решение обновляться или нет принимает сам компонент, а не по принципу подготовки имутабельных данных. Работа схожа с PureRenderMixin но дополнительно проверяется список значений который формирует метод this.exComponentUpdate() . 
- 
-Также важное отличие от PureRenderMixin, что сравниваются только новые свойства. Потому желатьно в компоненте указывать все свойства в this.getDefaultProps()
+A convenient alternative to shouldComponentUpdate. Freezes only the component itself, without affecting children. It is enough to return a list of values that affect the render.
 
 
 ```js
