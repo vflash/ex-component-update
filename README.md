@@ -7,36 +7,29 @@ A convenient alternative to shouldComponentUpdate. Freezes only the component it
 
 
 ```js
-// exComponentUpdate(selfComponent, isIgnoreChangeObject);
+import modelScreen from 'src/models/modelScreen.js'
 
-class {
+class MyCard extends React.Component {
     constructor() {
-        exComponentUpdate(this, false|true);
-        ...
+        exComponentUpdate(this, false|true|options);
+        ..
     };
 
     exComponentUpdate(nextProps, nextState) {
+        var data = nextProps.data || false;
         return [
-            nextProps.model.value,
-            ...
+            modelScreen.width <= 500,
+            modelScreen.width <= 980,
+            data.name,
+            data.email,
+            data.phone,
+            ..
         ];
     };
+
+    render() {
+        return ...
+    };
 };
---------------------------------
-React.createClass({
-    mixins: [
-        exComponentUpdate(null, false|true)
-    ],
 
-    exComponentUpdate: function(nextProps, nextState) {
-        return [
-            nextProps.model.value,
-            ...
-        ];
-    },
-
-    render: function() {
-        ...
-    }
-});
 ```
