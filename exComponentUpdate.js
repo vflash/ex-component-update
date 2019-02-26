@@ -1,42 +1,25 @@
-'use strict';
-// ----------------------------------------------------------
+import 'react-all-elements';
+export default exComponentUpdate;
 
 /*
-// exComponentUpdate(selfComponent, isIgnoreChangeObject);
-
-class {
+class Welcome extends React.Component {
     constructor() {
-        exComponentUpdate(this, false|true);
+        exComponentUpdate(this, false|true|{children,object,state});
         ...
     };
 
     exComponentUpdate(nextProps, nextState) {
+        // RETURN ARRAY -> value comparison
+        // RETURN FALSE -> freeze the branch
+        // RETURN NULL  -> freeze the self
+
         return [
             nextProps.value,
             ...
         ];
     };
 };
---------------------------------
-React.createClass({
-    mixins: [
-        exComponentUpdate(null, false|true)
-    ],
-
-    exComponentUpdate: function(nextProps, nextState) {
-        return [
-            nextProps.value,
-            ...
-        ];
-    },
-
-    render: function() {
-        ...
-    }
-});
 */
-
-module.exports = exComponentUpdate;
 
 var _EX_COMPONENT_UPDATE = 'exComponentUpdate';
 var _ON_CHILDS_UPDATE = 'exChildsUpdate'; // событие, есть вероятность что обновились потомки
@@ -48,8 +31,7 @@ var _EXTERNAL_DATA = '__externalData';
 
 
 function exComponentUpdate(self, ignoreMode) {
-    var isMixin = !self;
-    var obj = isMixin ? {} : self;
+    var obj = self;
 
     for (var i in mixin) {
         obj[i] = mixin[i];
@@ -66,26 +48,14 @@ function exComponentUpdate(self, ignoreMode) {
         obj[_IS_IGNORE_STATE] = ignoreMode === true;
     };
 
-    if (isMixin) {
-        obj.componentDidMount = componentDidMount;
-        obj[_EXTERNAL_DATA] = [];
-
-    } else {
-        obj[_EXTERNAL_DATA] = (obj[_EX_COMPONENT_UPDATE]
-            ? obj[_EX_COMPONENT_UPDATE](obj.props, obj.state)
-            : []
-        );
-    };
+    obj[_EXTERNAL_DATA] = (obj[_EX_COMPONENT_UPDATE]
+        ? obj[_EX_COMPONENT_UPDATE](obj.props, obj.state) || []
+        : []
+    );
 
     return obj;
 };
 
-
-var componentDidMount = function() {
-    if (this[_EX_COMPONENT_UPDATE]) {
-        this[_EXTERNAL_DATA] = this[_EX_COMPONENT_UPDATE](this.props, this.state);
-    };
-};
 
 var mixin = {
     //exComponentUpdate: null, // function(nextProps, nextState) {return []};
@@ -97,14 +67,20 @@ var mixin = {
         if (this[_EX_COMPONENT_UPDATE]) {
             nextData = this[_EX_COMPONENT_UPDATE](nextProps, nextState);
             if (!nextData) {
+                if (nextData !== false) {
+                    tailExData(this, null);
+                };
                 return false;
+            };
+
+            this[_EXTERNAL_DATA] = nextData;
+
+            if (checkExData(exData, nextData)) {
+                return true;
             };
         };
 
         if (!this[_IS_IGNORE_STATE] && nextState !== this.state) {
-            if (nextData) {
-                this[_EXTERNAL_DATA] = nextData;
-            };
             return true;
         };
 
@@ -136,27 +112,7 @@ var mixin = {
                 };
             };
 
-            if (nextData) {
-                this[_EXTERNAL_DATA] = nextData;
-            };
-
             return true;
-        };
-
-        if (nextData) {
-            var j = nextData.length;
-
-            if (j !== exData.length) {
-                this[_EXTERNAL_DATA] = nextData;
-                return true;
-            };
-
-            while(j--) {
-                if (exData[j] !== nextData[j]) {
-                    this[_EXTERNAL_DATA] = nextData;
-                    return true;
-                };
-            };
         };
 
         tailExData(this, null);
@@ -171,47 +127,64 @@ var mixin = {
 
         var nextData = this[_EX_COMPONENT_UPDATE](this.props, this.state);
         var exData = this[_EXTERNAL_DATA];
-        var j = nextData.length;
 
-        if (j !== exData.length) {
-            this[_EXTERNAL_DATA] = nextData;
-            this.forceUpdate(end);
+        if (!nextData) {
+            if (nextData !== false) {
+                tailExData(this, end);
+            };
             return;
         };
 
-        while(j--) {
-            if (exData[j] !== nextData[j]) {
-                this[_EXTERNAL_DATA] = nextData;
-                this.forceUpdate(end);
-                return;
-            };
+        this[_EXTERNAL_DATA] = nextData;
+
+        if (checkExData(exData, nextData)) {
+            this.forceUpdate(end);
+            return;
         };
 
         tailExData(this, end);
     },
 };
 
+function checkExData(exData, nextData) {
+    let j = nextData.length;
+    if (j !== exData.length) {
+        return true;
+    };
+
+    while(j--) {
+        if (exData[j] !== nextData[j]) {
+            return true;
+        };
+    };
+
+    return false;
+};
 
 function tailExData(self) {
-    var refs = self.refs;
+    var all = self.__all_elements;
+    if (all) {
+        all.forEach(check);
+        return;
+    };
+};
 
-    for (var i in refs) {
-        var elem = refs[i];
+function check(elem) {
+    if (!elem.__isMounted) {
+        return;
+    };
 
-        if (elem._checkExternalData) {
-            elem._checkExternalData();
-            continue;
+    if (elem._checkExternalData) {
+        elem._checkExternalData();
+        return;
+    };
 
-        };
-
-        if (elem.tagName) {
-            continue;
-        };
-
-        if (elem.setState) {
-            //console.log(elem.constructor);
-            elem.setState({});
-        };
+    if (elem.tagName) {
+        return;
+    };
+    if (elem.setState) {
+        //console.log(elem);
+        elem.setState({});
     };
 };
 
