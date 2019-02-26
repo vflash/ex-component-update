@@ -1,25 +1,24 @@
 {
-    "version": "0.4.0",
+    "version": "1.0.0",
     "name": "ex-component-update",
-    "description": "shouldComponentUpdate mixin",
+    "description": "shouldComponentUpdate tools",
     "keywords": [
         "shouldComponentUpdate",
         "reactjs"
     ],
-    "main": "./exComponentUpdate.js",
+    "main": "./ex-component-update.js",
     "homepage": "https://github.com/vflash/ex-component-update",
     "bugs": {
         "url": "https://github.com/vflash/ex-component-update/issues"
     },
     "author": {
         "name": "Vopilovskiy Konstantin",
-        "email": "flash.vkv@gmail.com",
-        "url": "http://vflash.ru"
+        "email": "flash.vkv@gmail.com"
     },
     "files": [
         "LICENSE",
         "README.md",
-        "exComponentUpdate.js"
+        "ex-component-update.js"
     ],
     "repository": {
         "type": "git",
