@@ -1,4 +1,4 @@
-import 'react-all-elements';
+// i mport 'react-all-elements';
 export default exComponentUpdate;
 
 /*
@@ -162,17 +162,22 @@ function checkExData(exData, nextData) {
 };
 
 function tailExData(self) {
-    var all = self.__all_elements;
-    if (all) {
-        all.forEach(check);
-        return;
+    // var all = self.__all_elements;
+    // if (all) {
+    //     all.forEach(check);
+    //     return;
+    // };
+
+    var refs = self.refs;
+    for (var i in refs) {
+        check(refs[i]);
     };
 };
 
 function check(elem) {
-    if (!elem.__isMounted) {
-        return;
-    };
+    // if (!elem || !elem.__isMounted) {
+    //     return;
+    // };
 
     if (elem._checkExternalData) {
         elem._checkExternalData();
