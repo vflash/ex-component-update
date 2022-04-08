@@ -63,6 +63,7 @@ var mixin = {
     shouldComponentUpdate: function(nextProps, nextState) {
         var nextData = null;
         var exData = this[_EXTERNAL_DATA];
+        var props = this.props;
 
         if (this[_EX_COMPONENT_UPDATE]) {
             nextData = this[_EX_COMPONENT_UPDATE](nextProps, nextState);
@@ -86,7 +87,6 @@ var mixin = {
 
         var isIgnoreChangeChildren = this[_IS_IGNORE_CHILDREN] ? true : false;
         var isIgnoreChangeObject = this[_IS_IGNORE_OBJECT] ? true : false;
-        var props = this.props;
 
         for(var name in nextProps) {
             var nextProp = nextProps[name];
